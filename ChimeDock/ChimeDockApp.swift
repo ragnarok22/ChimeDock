@@ -5,7 +5,7 @@ struct ChimeDockApp: App {
     @StateObject private var coordinator = EventCoordinator()
 
     var body: some Scene {
-        MenuBarExtra("ChimeDock", systemImage: "cable.connector") {
+        MenuBarExtra("ChimeDock", image: "MenuBarIcon") {
             StatusMenuView()
                 .environmentObject(coordinator.settingsStore)
                 .environmentObject(coordinator.soundPlayer)
