@@ -39,9 +39,9 @@ enum SoundOption: String, CaseIterable, Identifiable {
     var url: URL? {
         switch self {
         case .yameteIntro:
-            Bundle.main.url(forResource: "yamete-intro", withExtension: "mp3", subdirectory: "Resources/Sounds")
+            Bundle.main.url(forResource: "yamete-intro", withExtension: "mp3")
         case .yameteOutro:
-            Bundle.main.url(forResource: "yamete-outro", withExtension: "mp3", subdirectory: "Resources/Sounds")
+            Bundle.main.url(forResource: "yamete-outro", withExtension: "mp3")
         case .none:
             nil
         default:
