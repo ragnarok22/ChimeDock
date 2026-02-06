@@ -1,32 +1,21 @@
-//
-//  ChimeDockApp.swift
-//  ChimeDock
-//
-//  Created by Reinier Hernandez on 06-02-2026.
-//
-
 import SwiftUI
-import SwiftData
 
 @main
 struct ChimeDockApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+    @StateObject private var coordinator = EventCoordinator()
 
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        MenuBarExtra("ChimeDock", systemImage: "cable.connector") {
+            StatusMenuView()
+                .environmentObject(coordinator.settingsStore)
+                .environmentObject(coordinator.soundPlayer)
         }
-        .modelContainer(sharedModelContainer)
+        .menuBarExtraStyle(.menu)
+
+        Settings {
+            SettingsView()
+                .environmentObject(coordinator.settingsStore)
+                .environmentObject(coordinator.soundPlayer)
+        }
     }
 }
