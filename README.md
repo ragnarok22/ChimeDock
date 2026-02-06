@@ -1,7 +1,7 @@
 # ChimeDock
 
 <p align="center">
-  <img src="ChimeDock-icon.png" alt="ChimeDock icon" width="128">
+  <img src="chime-logo.png" alt="ChimeDock logo" width="128">
 </p>
 
 A macOS menu bar app that plays a chime when USB devices are connected or disconnected.
