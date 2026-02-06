@@ -11,6 +11,12 @@ permissions:
 jobs:
   build:
     runs-on: macos-latest
+    env:
+      APP_NAME: ChimeDock
+      SCHEME: ChimeDock
+      KEYCHAIN: build.keychain-db
+      KEYCHAIN_PASSWORD: temporary-ci-password
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,27 +27,81 @@ jobs:
       - name: Run tests
         run: |
           xcodebuild test \
-            -scheme ChimeDock \
+            -scheme $SCHEME \
             -destination 'platform=macOS' \
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGNING_REQUIRED=NO
 
-      - name: Build release
+      - name: Import signing certificate
+        env:
+          P12_BASE64: ${{ secrets.DEVELOPER_ID_CERTIFICATE_P12 }}
+          P12_PASSWORD: ${{ secrets.DEVELOPER_ID_CERTIFICATE_PASSWORD }}
         run: |
-          xcodebuild build \
-            -scheme ChimeDock \
+          CERT_PATH="$RUNNER_TEMP/certificate.p12"
+          echo "$P12_BASE64" | base64 --decode > "$CERT_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+
+          security import "$CERT_PATH" \
+            -k "$KEYCHAIN" \
+            -P "$P12_PASSWORD" \
+            -T /usr/bin/codesign \
+            -T /usr/bin/security
+
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security list-keychains -d user -s "$KEYCHAIN" login.keychain-db
+
+      - name: Archive
+        run: |
+          xcodebuild archive \
+            -scheme "$SCHEME" \
             -configuration Release \
-            -derivedDataPath build \
-            CODE_SIGN_IDENTITY="-" \
-            CODE_SIGNING_REQUIRED=NO
+            -archivePath "$RUNNER_TEMP/$APP_NAME.xcarchive" \
+            -quiet
 
-      - name: Zip app bundle
+      - name: Export with Developer ID signing
         run: |
-          cd build/Build/Products/Release
-          zip -r "$GITHUB_WORKSPACE/ChimeDock.zip" ChimeDock.app
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/$APP_NAME.xcarchive" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -exportOptionsPlist ExportOptions.plist \
+            -quiet
 
-      - name: Create Release
+      - name: Verify code signature
+        run: codesign --verify --deep --strict "$RUNNER_TEMP/export/$APP_NAME.app"
+
+      - name: Create DMG
+        run: |
+          hdiutil create \
+            -volname "$APP_NAME" \
+            -srcfolder "$RUNNER_TEMP/export/$APP_NAME.app" \
+            -ov \
+            -format UDZO \
+            "$RUNNER_TEMP/$APP_NAME.dmg"
+
+      - name: Notarize DMG
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+        run: |
+          xcrun notarytool submit "$RUNNER_TEMP/$APP_NAME.dmg" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APP_PASSWORD" \
+            --wait
+
+      - name: Staple notarization ticket
+        run: xcrun stapler staple "$RUNNER_TEMP/$APP_NAME.dmg"
+
+      - name: Upload DMG to release
         uses: softprops/action-gh-release@v2
         with:
-          files: ChimeDock.zip
+          files: ${{ runner.temp }}/ChimeDock.dmg
           generate_release_notes: true
+
+      - name: Cleanup keychain
+        if: always()
+        run: security delete-keychain "$KEYCHAIN" 2>/dev/null || true
