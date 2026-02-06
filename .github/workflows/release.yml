@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: Run tests
+        run: |
+          xcodebuild test \
+            -scheme ChimeDock \
+            -destination 'platform=macOS' \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Build release
+        run: |
+          xcodebuild build \
+            -scheme ChimeDock \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Zip app bundle
+        run: |
+          cd build/Build/Products/Release
+          zip -r "$GITHUB_WORKSPACE/ChimeDock.zip" ChimeDock.app
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ChimeDock.zip
+          generate_release_notes: true
