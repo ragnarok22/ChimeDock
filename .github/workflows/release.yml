@@ -75,50 +75,21 @@ jobs:
       - name: Verify code signature
         run: codesign --verify --deep --strict "$RUNNER_TEMP/export/$APP_NAME.app"
 
+      - name: Install create-dmg
+        run: brew install create-dmg
+
       - name: Create DMG
         run: |
-          DMG_STAGING="$RUNNER_TEMP/dmg-staging"
-          mkdir -p "$DMG_STAGING"
-          cp -R "$RUNNER_TEMP/export/$APP_NAME.app" "$DMG_STAGING/"
-          ln -s /Applications "$DMG_STAGING/Applications"
-
-          hdiutil create \
-            -volname "$APP_NAME" \
-            -srcfolder "$DMG_STAGING" \
-            -ov \
-            -format UDRW \
-            "$RUNNER_TEMP/$APP_NAME-rw.dmg"
-
-          MOUNT_DIR="/Volumes/$APP_NAME"
-          hdiutil attach "$RUNNER_TEMP/$APP_NAME-rw.dmg" -mountpoint "$MOUNT_DIR"
-          osascript <<'APPLESCRIPT'
-          tell application "Finder"
-            tell disk "ChimeDock"
-              open
-              set current view of container window to icon view
-              set toolbar visible of container window to false
-              set statusbar visible of container window to false
-              set bounds of container window to {400, 200, 880, 520}
-              set theViewOptions to icon view options of container window
-              set arrangement of theViewOptions to not arranged
-              set icon size of theViewOptions to 80
-              set position of item "ChimeDock.app" of container window to {120, 160}
-              set position of item "Applications" of container window to {360, 160}
-              delay 2
-              update without registering applications
-              close
-            end tell
-          end tell
-          APPLESCRIPT
-          sync
-          sleep 2
-          hdiutil detach "$MOUNT_DIR"
-
-          hdiutil convert \
-            "$RUNNER_TEMP/$APP_NAME-rw.dmg" \
-            -format UDZO \
-            -o "$RUNNER_TEMP/$APP_NAME.dmg"
-          rm -f "$RUNNER_TEMP/$APP_NAME-rw.dmg"
+          create-dmg \
+            --volname "$APP_NAME" \
+            --window-pos 200 120 \
+            --window-size 480 320 \
+            --icon-size 80 \
+            --icon "$APP_NAME.app" 120 160 \
+            --app-drop-link 360 160 \
+            --no-internet-enable \
+            "$RUNNER_TEMP/$APP_NAME.dmg" \
+            "$RUNNER_TEMP/export/$APP_NAME.app"
 
       - name: Notarize DMG
         env:
