@@ -85,11 +85,14 @@ tell application "Finder"
     set icon size of theViewOptions to 80
     set position of item "$APP_NAME.app" of container window to {120, 160}
     set position of item "Applications" of container window to {360, 160}
+    delay 2
+    update without registering applications
     close
   end tell
 end tell
 APPLESCRIPT
 sync
+sleep 2
 hdiutil detach "$MOUNT_DIR"
 
 # Convert to compressed read-only DMG
