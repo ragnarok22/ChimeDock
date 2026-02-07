@@ -10,6 +10,9 @@ xcuserdata/
 *.swp
 *~
 
+# Environment
+.env
+
 # Release artifacts
 *.dmg
 *.p12
