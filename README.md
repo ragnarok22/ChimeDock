@@ -4,6 +4,14 @@
   <img src="chime-logo.png" alt="ChimeDock logo" width="128">
 </p>
 
+<p align="center">
+  <a href="https://github.com/ragnarok22/ChimeDock/actions/workflows/test.yml"><img src="https://github.com/ragnarok22/ChimeDock/actions/workflows/test.yml/badge.svg" alt="Test"></a>
+  <img src="https://img.shields.io/badge/platform-macOS-blue?logo=apple" alt="Platform: macOS">
+  <img src="https://img.shields.io/badge/Swift-5-orange?logo=swift" alt="Swift 5">
+  <a href="https://github.com/ragnarok22/ChimeDock/releases"><img src="https://img.shields.io/github/v/release/ragnarok22/ChimeDock?include_prereleases&label=release" alt="Release"></a>
+  <a href="https://github.com/ragnarok22/ChimeDock"><img src="https://img.shields.io/github/stars/ragnarok22/ChimeDock?style=social" alt="GitHub Stars"></a>
+</p>
+
 A macOS menu bar app that plays a chime when USB devices are connected or disconnected.
 
 ## Features
