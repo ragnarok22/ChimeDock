@@ -77,12 +77,45 @@ jobs:
 
       - name: Create DMG
         run: |
+          DMG_STAGING="$RUNNER_TEMP/dmg-staging"
+          mkdir -p "$DMG_STAGING"
+          cp -R "$RUNNER_TEMP/export/$APP_NAME.app" "$DMG_STAGING/"
+          ln -s /Applications "$DMG_STAGING/Applications"
+
           hdiutil create \
             -volname "$APP_NAME" \
-            -srcfolder "$RUNNER_TEMP/export/$APP_NAME.app" \
+            -srcfolder "$DMG_STAGING" \
             -ov \
+            -format UDRW \
+            "$RUNNER_TEMP/$APP_NAME-rw.dmg"
+
+          MOUNT_DIR="/Volumes/$APP_NAME"
+          hdiutil attach "$RUNNER_TEMP/$APP_NAME-rw.dmg" -mountpoint "$MOUNT_DIR"
+          osascript <<'APPLESCRIPT'
+          tell application "Finder"
+            tell disk "ChimeDock"
+              open
+              set current view of container window to icon view
+              set toolbar visible of container window to false
+              set statusbar visible of container window to false
+              set bounds of container window to {400, 200, 880, 520}
+              set theViewOptions to icon view options of container window
+              set arrangement of theViewOptions to not arranged
+              set icon size of theViewOptions to 80
+              set position of item "ChimeDock.app" of container window to {120, 160}
+              set position of item "Applications" of container window to {360, 160}
+              close
+            end tell
+          end tell
+          APPLESCRIPT
+          sync
+          hdiutil detach "$MOUNT_DIR"
+
+          hdiutil convert \
+            "$RUNNER_TEMP/$APP_NAME-rw.dmg" \
             -format UDZO \
-            "$RUNNER_TEMP/$APP_NAME.dmg"
+            -o "$RUNNER_TEMP/$APP_NAME.dmg"
+          rm -f "$RUNNER_TEMP/$APP_NAME-rw.dmg"
 
       - name: Notarize DMG
         env:

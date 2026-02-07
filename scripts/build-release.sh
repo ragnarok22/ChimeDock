@@ -57,12 +57,47 @@ echo "Signature OK"
 
 # ── Create DMG ─────────────────────────────────────────────────────────────────
 step "Creating DMG"
+DMG_STAGING="$BUILD_DIR/dmg-staging"
+mkdir -p "$DMG_STAGING"
+cp -R "$APP_PATH" "$DMG_STAGING/"
+ln -s /Applications "$DMG_STAGING/Applications"
+
 hdiutil create \
   -volname "$APP_NAME" \
-  -srcfolder "$APP_PATH" \
+  -srcfolder "$DMG_STAGING" \
   -ov \
+  -format UDRW \
+  "$BUILD_DIR/$APP_NAME-rw.dmg"
+
+# Set DMG window appearance
+MOUNT_DIR="/Volumes/$APP_NAME"
+hdiutil attach "$BUILD_DIR/$APP_NAME-rw.dmg" -mountpoint "$MOUNT_DIR"
+osascript <<APPLESCRIPT
+tell application "Finder"
+  tell disk "$APP_NAME"
+    open
+    set current view of container window to icon view
+    set toolbar visible of container window to false
+    set statusbar visible of container window to false
+    set bounds of container window to {400, 200, 880, 520}
+    set theViewOptions to icon view options of container window
+    set arrangement of theViewOptions to not arranged
+    set icon size of theViewOptions to 80
+    set position of item "$APP_NAME.app" of container window to {120, 160}
+    set position of item "Applications" of container window to {360, 160}
+    close
+  end tell
+end tell
+APPLESCRIPT
+sync
+hdiutil detach "$MOUNT_DIR"
+
+# Convert to compressed read-only DMG
+hdiutil convert \
+  "$BUILD_DIR/$APP_NAME-rw.dmg" \
   -format UDZO \
-  "$DMG_PATH"
+  -o "$DMG_PATH"
+rm -f "$BUILD_DIR/$APP_NAME-rw.dmg"
 
 # ── Notarize ───────────────────────────────────────────────────────────────────
 step "Submitting DMG for notarization (this may take a few minutes)"
