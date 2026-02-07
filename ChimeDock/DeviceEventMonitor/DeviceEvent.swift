@@ -12,7 +12,7 @@ struct DeviceEvent: Sendable {
     let deviceName: String
     let timestamp: Date
 
-    init(type: DeviceEventType, vendorID: Int = 0, productID: Int = 0, deviceName: String = "Unknown", timestamp: Date = Date()) {
+    nonisolated init(type: DeviceEventType, vendorID: Int = 0, productID: Int = 0, deviceName: String = "Unknown", timestamp: Date = Date()) {
         self.type = type
         self.vendorID = vendorID
         self.productID = productID

@@ -5,7 +5,7 @@ import IOKit.usb
 
 final class IOKitUSBMonitor: ObservableObject, DeviceEventMonitor {
     nonisolated let objectWillChange = ObservableObjectPublisher()
-    let events = PassthroughSubject<DeviceEvent, Never>()
+    nonisolated let events = PassthroughSubject<DeviceEvent, Never>()
 
     private var notificationPort: IONotificationPortRef?
     private var addedIterator: io_iterator_t = 0
