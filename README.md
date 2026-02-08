@@ -23,12 +23,25 @@ A macOS menu bar app that plays a chime when USB devices are connected or discon
 - Launch at login
 - Quick-toggle and sound test from the menu bar
 
+## Installation
+
+### Homebrew (recommended)
+
+```bash
+brew tap ragnarok22/chimedock
+brew install --cask chimedock
+```
+
+### Manual
+
+Download the latest `.dmg` from the [Releases](https://github.com/ragnarok22/ChimeDock/releases) page, open it, and drag **ChimeDock.app** to your Applications folder.
+
 ## Requirements
 
 - macOS 26.2+
-- Xcode (Swift 5)
+- Xcode (Swift 5) — only needed for building from source
 
-## Building
+## Building from Source
 
 Open `ChimeDock.xcodeproj` in Xcode and build, or from the command line:
 

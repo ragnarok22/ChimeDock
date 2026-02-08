@@ -17,6 +17,14 @@ xcodebuild test -scheme ChimeDock -destination 'platform=macOS' -only-testing:Ch
 
 There is no Makefile or SPM — this is a pure Xcode project (`ChimeDock.xcodeproj`).
 
+## Distribution
+
+ChimeDock is distributed via Homebrew using a custom tap (`ragnarok22/homebrew-chimedock`).
+
+- **Cask template**: `HomebrewFormula/chimedock.rb` — kept in this repo as the source of truth.
+- **Tap repo**: `ragnarok22/homebrew-chimedock` — the release workflow automatically pushes version and SHA256 updates to `Casks/chimedock.rb` in the tap after each tagged release.
+- **Release workflow** (`.github/workflows/release.yml`) computes the DMG SHA256, uploads to GitHub Releases, then updates the tap repo using the `HOMEBREW_TAP_TOKEN` secret.
+
 ## Architecture
 
 ChimeDock is a macOS menu bar app (SwiftUI `MenuBarExtra`) that plays chime sounds when USB devices are connected/disconnected.
