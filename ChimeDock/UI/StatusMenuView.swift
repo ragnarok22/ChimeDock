@@ -3,6 +3,7 @@ import SwiftUI
 struct StatusMenuView: View {
     @EnvironmentObject var settings: SettingsStore
     @EnvironmentObject var soundPlayer: SoundPlayer
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         Toggle("Enabled", isOn: $settings.isEnabled)
@@ -19,8 +20,9 @@ struct StatusMenuView: View {
 
         Divider()
 
-        SettingsLink {
-            Text("Settings...")
+        Button("Settings...") {
+            NSApp.activate(ignoringOtherApps: true)
+            openWindow(id: "settings")
         }
 
         Divider()

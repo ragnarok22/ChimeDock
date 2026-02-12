@@ -12,10 +12,12 @@ struct ChimeDockApp: App {
         }
         .menuBarExtraStyle(.menu)
 
-        Settings {
+        Window("ChimeDock Settings", id: "settings") {
             SettingsView()
                 .environmentObject(coordinator.settingsStore)
                 .environmentObject(coordinator.soundPlayer)
         }
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
     }
 }
