@@ -66,7 +66,7 @@ final class AudioDeviceMonitor: DeviceEventMonitor {
             events.send(event)
         }
 
-        for deviceID in removed {
+        for _ in removed {
             let event = DeviceEvent(type: .disconnected, source: .audio, deviceName: "Audio Device")
             events.send(event)
         }
@@ -105,16 +105,16 @@ final class AudioDeviceMonitor: DeviceEventMonitor {
 
     private func deviceName(for deviceID: AudioDeviceID) -> String? {
         var address = AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyDeviceNameCFString,
+            mSelector: kAudioDevicePropertyDeviceName,
             mScope: kAudioObjectPropertyScopeGlobal,
             mElement: kAudioObjectPropertyElementMain
         )
 
-        var name: CFString = "" as CFString
-        var dataSize = UInt32(MemoryLayout<CFString>.size)
+        var name = [CChar](repeating: 0, count: 256)
+        var dataSize = UInt32(name.count)
         let status = AudioObjectGetPropertyData(deviceID, &address, 0, nil, &dataSize, &name)
         guard status == noErr else { return nil }
-        return name as String
+        return String(cString: name)
     }
 
     deinit {

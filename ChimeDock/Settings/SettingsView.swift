@@ -48,7 +48,7 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 450, height: 400)
+        .frame(width: 450, height: 480)
     }
 
     private func sourceBinding(for source: DeviceEventSource) -> Binding<Bool> {
