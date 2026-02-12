@@ -11,6 +11,12 @@ struct SettingsView: View {
                 Toggle("Launch at login", isOn: $settings.launchAtLogin)
             }
 
+            Section("Event Sources") {
+                ForEach(DeviceEventSource.allCases, id: \.self) { source in
+                    Toggle(source.displayName, isOn: sourceBinding(for: source))
+                }
+            }
+
             Section("Sounds") {
                 HStack {
                     Picker("Connect sound", selection: $settings.connectSoundRaw) {
@@ -42,6 +48,13 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 450, height: 300)
+        .frame(width: 450, height: 400)
+    }
+
+    private func sourceBinding(for source: DeviceEventSource) -> Binding<Bool> {
+        Binding(
+            get: { settings.isSourceEnabled(source) },
+            set: { settings.setSource(source, enabled: $0) }
+        )
     }
 }

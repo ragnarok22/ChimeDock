@@ -97,6 +97,7 @@ final class IOKitUSBMonitor: ObservableObject, DeviceEventMonitor {
 
         return DeviceEvent(
             type: type,
+            source: .usb,
             vendorID: vendorID,
             productID: productID,
             deviceName: deviceName

@@ -5,23 +5,50 @@ final class EventCoordinator: ObservableObject {
     nonisolated let objectWillChange = ObservableObjectPublisher()
     let settingsStore = SettingsStore()
     let soundPlayer = SoundPlayer()
-    let deviceMonitor = IOKitUSBMonitor()
 
+    private var monitors: [DeviceEventSource: any DeviceEventMonitor] = [:]
     private var cancellables = Set<AnyCancellable>()
 
     init() {
-        deviceMonitor.events
-            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
-            .sink { [weak self] event in
-                self?.handleEvent(event)
+        monitors = [
+            .usb: IOKitUSBMonitor(),
+            .audio: AudioDeviceMonitor(),
+            .bluetooth: BluetoothMonitor(),
+            .wifi: WiFiMonitor(),
+        ]
+
+        for (_, monitor) in monitors {
+            monitor.events
+                .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
+                .sink { [weak self] event in
+                    self?.handleEvent(event)
+                }
+                .store(in: &cancellables)
+        }
+
+        syncMonitorStates()
+
+        settingsStore.$enabledSources
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.syncMonitorStates()
             }
             .store(in: &cancellables)
+    }
 
-        deviceMonitor.startMonitoring()
+    private func syncMonitorStates() {
+        for (source, monitor) in monitors {
+            if settingsStore.isSourceEnabled(source) {
+                monitor.startMonitoring()
+            } else {
+                monitor.stopMonitoring()
+            }
+        }
     }
 
     private func handleEvent(_ event: DeviceEvent) {
         guard settingsStore.isEnabled else { return }
+        guard settingsStore.isSourceEnabled(event.source) else { return }
 
         let soundOption: SoundOption
         switch event.type {
@@ -35,6 +62,8 @@ final class EventCoordinator: ObservableObject {
     }
 
     deinit {
-        deviceMonitor.stopMonitoring()
+        for (_, monitor) in monitors {
+            monitor.stopMonitoring()
+        }
     }
 }

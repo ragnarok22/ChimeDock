@@ -54,6 +54,47 @@ struct ChimeDockTests {
         }
     }
 
+    @Test func deviceEventSourceDefaults() {
+        #expect(DeviceEventSource.usb.defaultEnabled == true)
+        #expect(DeviceEventSource.audio.defaultEnabled == false)
+        #expect(DeviceEventSource.bluetooth.defaultEnabled == false)
+        #expect(DeviceEventSource.wifi.defaultEnabled == false)
+    }
+
+    @Test func deviceEventSourceDisplayNames() {
+        #expect(DeviceEventSource.usb.displayName == "USB")
+        #expect(DeviceEventSource.audio.displayName == "Audio")
+        #expect(DeviceEventSource.bluetooth.displayName == "Bluetooth")
+        #expect(DeviceEventSource.wifi.displayName == "WiFi")
+    }
+
+    @Test func deviceEventSourceField() {
+        let event = DeviceEvent(type: .connected, source: .audio, deviceName: "Headphones")
+        #expect(event.source == .audio)
+        #expect(event.deviceName == "Headphones")
+    }
+
+    @Test func deviceEventDefaultSourceIsUSB() {
+        let event = DeviceEvent(type: .connected)
+        #expect(event.source == .usb)
+    }
+
+    @Test func settingsStoreSourceDefaults() {
+        let store = SettingsStore()
+        #expect(store.isSourceEnabled(.usb) == true)
+        #expect(store.isSourceEnabled(.audio) == false)
+        #expect(store.isSourceEnabled(.bluetooth) == false)
+        #expect(store.isSourceEnabled(.wifi) == false)
+    }
+
+    @Test func settingsStoreToggleSource() {
+        let store = SettingsStore()
+        store.setSource(.audio, enabled: true)
+        #expect(store.isSourceEnabled(.audio) == true)
+        store.setSource(.audio, enabled: false)
+        #expect(store.isSourceEnabled(.audio) == false)
+    }
+
     @Test func mockDeviceEventMonitorEmitsEvents() {
         let monitor = MockDeviceEventMonitor()
         var receivedEvents: [DeviceEvent] = []

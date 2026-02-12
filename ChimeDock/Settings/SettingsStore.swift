@@ -28,6 +28,26 @@ final class SettingsStore: ObservableObject {
         }
     }
 
+    @Published var enabledSources: Set<DeviceEventSource> {
+        didSet {
+            for source in DeviceEventSource.allCases {
+                defaults.set(enabledSources.contains(source), forKey: source.settingsKey)
+            }
+        }
+    }
+
+    func isSourceEnabled(_ source: DeviceEventSource) -> Bool {
+        enabledSources.contains(source)
+    }
+
+    func setSource(_ source: DeviceEventSource, enabled: Bool) {
+        if enabled {
+            enabledSources.insert(source)
+        } else {
+            enabledSources.remove(source)
+        }
+    }
+
     var connectSound: SoundOption {
         get { SoundOption(rawValue: connectSoundRaw) ?? .yameteIntro }
         set { connectSoundRaw = newValue.rawValue }
@@ -45,6 +65,15 @@ final class SettingsStore: ObservableObject {
         self.connectSoundRaw = defaults.string(forKey: "connectSoundRaw") ?? SoundOption.defaultConnect.rawValue
         self.disconnectSoundRaw = defaults.string(forKey: "disconnectSoundRaw") ?? SoundOption.defaultDisconnect.rawValue
         self.launchAtLogin = defaults.bool(forKey: "launchAtLogin")
+
+        var sources = Set<DeviceEventSource>()
+        for source in DeviceEventSource.allCases {
+            let enabled = defaults.object(forKey: source.settingsKey) as? Bool ?? source.defaultEnabled
+            if enabled {
+                sources.insert(source)
+            }
+        }
+        self.enabledSources = sources
     }
 
     private func updateLaunchAtLogin() {
