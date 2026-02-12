@@ -25,6 +25,11 @@ struct StatusMenuView: View {
             openWindow(id: "settings")
         }
 
+        Button("About ChimeDock") {
+            NSApp.activate(ignoringOtherApps: true)
+            openWindow(id: "about")
+        }
+
         Divider()
 
         Button("Quit") {

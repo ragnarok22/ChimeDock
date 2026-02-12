@@ -19,5 +19,11 @@ struct ChimeDockApp: App {
         }
         .windowResizability(.contentSize)
         .defaultPosition(.center)
+
+        Window("About ChimeDock", id: "about") {
+            AboutView()
+        }
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
     }
 }
