@@ -1,5 +1,6 @@
 import Testing
 import Combine
+import Foundation
 @testable import ChimeDock
 
 struct ChimeDockTests {
@@ -80,6 +81,7 @@ struct ChimeDockTests {
     }
 
     @Test func settingsStoreSourceDefaults() {
+        resetSourceDefaults()
         let store = SettingsStore()
         #expect(store.isSourceEnabled(.usb) == true)
         #expect(store.isSourceEnabled(.audio) == false)
@@ -88,6 +90,7 @@ struct ChimeDockTests {
     }
 
     @Test func settingsStoreToggleSource() {
+        resetSourceDefaults()
         let store = SettingsStore()
         store.setSource(.audio, enabled: true)
         #expect(store.isSourceEnabled(.audio) == true)
@@ -166,6 +169,7 @@ struct ChimeDockTests {
     }
 
     @Test func settingsStoreToggleMultipleSources() {
+        resetSourceDefaults()
         let store = SettingsStore()
         store.setSource(.audio, enabled: true)
         store.setSource(.wifi, enabled: true)
@@ -180,6 +184,7 @@ struct ChimeDockTests {
     }
 
     @Test func settingsStoreEnableDisableSameSource() {
+        resetSourceDefaults()
         let store = SettingsStore()
         store.setSource(.bluetooth, enabled: true)
         store.setSource(.bluetooth, enabled: true)
@@ -197,6 +202,13 @@ struct ChimeDockTests {
         #expect(monitor.isMonitoring == true)
         monitor.stopMonitoring()
         #expect(monitor.isMonitoring == false)
+    }
+
+    private func resetSourceDefaults() {
+        let defaults = UserDefaults.standard
+        for source in DeviceEventSource.allCases {
+            defaults.removeObject(forKey: source.settingsKey)
+        }
     }
 }
 
