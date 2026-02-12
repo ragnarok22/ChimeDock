@@ -112,6 +112,92 @@ struct ChimeDockTests {
         monitor.stopMonitoring()
         _ = cancellable
     }
+
+    @Test func mockMonitorEmitsSourcedEvents() {
+        let monitor = MockDeviceEventMonitor()
+        var receivedEvents: [DeviceEvent] = []
+        let cancellable = monitor.events.sink { event in
+            receivedEvents.append(event)
+        }
+
+        monitor.startMonitoring()
+        monitor.simulateEvent(DeviceEvent(type: .connected, source: .audio, deviceName: "Headphones"))
+        monitor.simulateEvent(DeviceEvent(type: .disconnected, source: .bluetooth, deviceName: "AirPods"))
+        monitor.simulateEvent(DeviceEvent(type: .connected, source: .wifi, deviceName: "WiFi"))
+
+        #expect(receivedEvents.count == 3)
+        #expect(receivedEvents[0].source == .audio)
+        #expect(receivedEvents[1].source == .bluetooth)
+        #expect(receivedEvents[1].type == .disconnected)
+        #expect(receivedEvents[2].source == .wifi)
+
+        monitor.stopMonitoring()
+        _ = cancellable
+    }
+
+    @Test func deviceEventSourceSettingsKeys() {
+        #expect(DeviceEventSource.usb.settingsKey == "source_usb_enabled")
+        #expect(DeviceEventSource.audio.settingsKey == "source_audio_enabled")
+        #expect(DeviceEventSource.bluetooth.settingsKey == "source_bluetooth_enabled")
+        #expect(DeviceEventSource.wifi.settingsKey == "source_wifi_enabled")
+    }
+
+    @Test func deviceEventSourceAllCases() {
+        let allCases = DeviceEventSource.allCases
+        #expect(allCases.count == 4)
+        #expect(allCases.contains(.usb))
+        #expect(allCases.contains(.audio))
+        #expect(allCases.contains(.bluetooth))
+        #expect(allCases.contains(.wifi))
+    }
+
+    @Test func deviceEventSourceRawValues() {
+        #expect(DeviceEventSource.usb.rawValue == "usb")
+        #expect(DeviceEventSource.audio.rawValue == "audio")
+        #expect(DeviceEventSource.bluetooth.rawValue == "bluetooth")
+        #expect(DeviceEventSource.wifi.rawValue == "wifi")
+    }
+
+    @Test func deviceEventSourceRoundTrip() {
+        for source in DeviceEventSource.allCases {
+            let recovered = DeviceEventSource(rawValue: source.rawValue)
+            #expect(recovered == source)
+        }
+    }
+
+    @Test func settingsStoreToggleMultipleSources() {
+        let store = SettingsStore()
+        store.setSource(.audio, enabled: true)
+        store.setSource(.wifi, enabled: true)
+        #expect(store.isSourceEnabled(.usb) == true)
+        #expect(store.isSourceEnabled(.audio) == true)
+        #expect(store.isSourceEnabled(.bluetooth) == false)
+        #expect(store.isSourceEnabled(.wifi) == true)
+
+        store.setSource(.usb, enabled: false)
+        #expect(store.isSourceEnabled(.usb) == false)
+        #expect(store.enabledSources.count == 2)
+    }
+
+    @Test func settingsStoreEnableDisableSameSource() {
+        let store = SettingsStore()
+        store.setSource(.bluetooth, enabled: true)
+        store.setSource(.bluetooth, enabled: true)
+        #expect(store.isSourceEnabled(.bluetooth) == true)
+
+        store.setSource(.bluetooth, enabled: false)
+        store.setSource(.bluetooth, enabled: false)
+        #expect(store.isSourceEnabled(.bluetooth) == false)
+    }
+
+    @Test func mockMonitorStartStop() {
+        let monitor = MockDeviceEventMonitor()
+        #expect(monitor.isMonitoring == false)
+        monitor.startMonitoring()
+        #expect(monitor.isMonitoring == true)
+        monitor.stopMonitoring()
+        #expect(monitor.isMonitoring == false)
+    }
 }
 
 final class MockDeviceEventMonitor: DeviceEventMonitor {
