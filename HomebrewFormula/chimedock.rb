@@ -1,5 +1,5 @@
 cask "chimedock" do
-  version "1.0.3"
+  version "1.1.0"
   sha256 "21032a12dcaf3ccaab89e5eedc43beace2047d83fbd0f4d23c675b29d845c730"
 
   url "https://github.com/ragnarok22/ChimeDock/releases/download/v#{version}/ChimeDock.dmg"
