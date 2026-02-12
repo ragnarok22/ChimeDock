@@ -3,6 +3,7 @@ import Combine
 import Foundation
 @testable import ChimeDock
 
+@Suite(.serialized)
 struct ChimeDockTests {
 
     @Test func settingsStoreDefaults() {
